@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pydantic
+PIL
+opencv-python
+numpy
+tensorflow
+tensorflow-hub
+mediapipe
+sqlmodel
+geocoder
+openai
+python-dotenv
