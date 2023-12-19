@@ -1,36 +1,54 @@
-# Usa la imagen oficial de Python 3.11
-FROM python:3.11-slim
+# Usa la imagen oficial de Python
+FROM python:3.9-slim
 
-# Define un argumento para la clave de OpenAI
-ARG OPENAI_KEY
-ENV OPENAI_KEY=$OPENAI_KEY
+# Configura el entorno
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-# Define el puerto de la aplicación
-ENV PORT 8000
+# Instala librerías necesarias para OpenCV
+RUN apt-get update && \
+    apt-get install -y libgl1-mesa-glx && \
+    rm -rf /var/lib/apt/lists/*
 
-# Instala spaCy y las dependencias necesarias
-RUN pip install -U spacy
-RUN python -m spacy download es_core_news_md
+# Crea y establece el directorio de trabajo
+WORKDIR /app
 
-# Instala las dependencias de TensorFlow y scikit-learn
-RUN pip install tensorflow scikit-learn
+# Copia los archivos de requerimientos e instala las dependencias
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Instala otras dependencias desde requirements.txt
-COPY requirements.txt /
-RUN pip install -r requirements.txt
+# Copia el resto de los archivos de la aplicación
+COPY src /app/src
 
-# Copia los archivos necesarios
-COPY predictor.py /
-COPY localizador.py /
-COPY information.py /
-COPY app.py /
-COPY requirements.txt /
-COPY db.sqlite3 /
-COPY list.txt /
-COPY src /src
+# Expone el puerto que utilizará FastAPI
+EXPOSE 8000
 
-# Define el directorio de trabajo
-WORKDIR /src
+# Ejecuta el servidor FastAPI con Uvicorn
+CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Usa la imagen oficial de Python
+FROM python:3.9-slim
 
-# CMD para ejecutar la aplicación con uvicorn
-CMD uvicorn app:app --host 0.0.0.0 --port ${PORT}
+# Configura el entorno
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Instala librerías necesarias para OpenCV
+RUN apt-get update && \
+    apt-get install -y libgl1-mesa-glx && \
+    rm -rf /var/lib/apt/lists/*
+
+# Crea y establece el directorio de trabajo
+WORKDIR /app
+
+# Copia los archivos de requerimientos e instala las dependencias
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copia el resto de los archivos de la aplicación
+COPY src /app/src
+
+# Expone el puerto que utilizará FastAPI
+EXPOSE 8000
+
+# Ejecuta el servidor FastAPI con Uvicorn
+CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000"]
